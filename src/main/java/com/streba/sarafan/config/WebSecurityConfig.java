@@ -10,16 +10,20 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
+import java.time.LocalDateTime;
+
 @Configuration
 @EnableWebSecurity
 @EnableOAuth2Sso
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
-                .mvcMatchers("/").permitAll()
+        http
+                .antMatcher("/**")
+                .authorizeRequests()
+                .antMatchers("/", "/login**", "/js/**", "/error**").permitAll()
                 .anyRequest().authenticated()
+                .and().logout().logoutSuccessUrl("/").permitAll()
                 .and()
                 .csrf().disable();
     }
@@ -42,9 +46,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 return newUser;
             });
 
+            user.setLastVisit(LocalDateTime.now());
 
-            return new User();
+            return userDetailsRepo.save(user);
         };
-   }
-
+    }
 }
